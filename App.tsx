@@ -33,9 +33,14 @@ const App: React.FC = () => {
     setIsLoadingData(false);
   }
 
-  const handleWorkoutComplete = async (workoutName: string) => {
+  const handleWorkoutComplete = async (workoutName: string, reps?: number) => {
+    let logName = workoutName;
+    if (reps !== undefined && reps > 0) {
+      logName = `${workoutName} (${reps} ${reps === 1 ? 'rep' : 'reps'})`;
+    }
+
     try {
-      await addWorkoutLogEntry(workoutName);
+      await addWorkoutLogEntry(logName);
       // Refetch log after adding a new entry
       await refetchLog();
     } catch (error) {
@@ -47,7 +52,7 @@ const App: React.FC = () => {
   const renderPage = () => {
     switch(currentPage) {
       case Page.Burpees:
-        return <BurpeeWorkout onComplete={() => handleWorkoutComplete('Burpee Challenge')} />;
+        return <BurpeeWorkout onComplete={(reps) => handleWorkoutComplete('Burpee Challenge', reps)} />;
       case Page.HIIT:
         return <HiitWorkout onComplete={() => handleWorkoutComplete('HIIT Circuit')} />;
       case Page.Dumbbell:

@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BURPEE_CONFIG } from '../constants';
 import { useInterval } from '../hooks/useInterval';
 import { Button } from './ui/Button';
 import { TimerCircle } from './ui/TimerCircle';
+import * as audioService from '../services/audioService';
 
 interface BurpeeWorkoutProps {
-  onComplete: () => void;
+  onComplete: (reps: number) => void;
 }
 
 type WorkoutState = 'NOT_STARTED' | 'WORK' | 'REST' | 'COMPLETED';
@@ -15,6 +16,17 @@ const BurpeeWorkout: React.FC<BurpeeWorkoutProps> = ({ onComplete }) => {
   const [currentRep, setCurrentRep] = useState(1);
   const [timer, setTimer] = useState(BURPEE_CONFIG.workDuration);
   const [isRunning, setIsRunning] = useState(false);
+
+  // Audio cues on state change
+  useEffect(() => {
+    if (state === 'WORK') {
+        audioService.playStartWorkSound();
+    } else if (state === 'REST') {
+        audioService.playStartRestSound();
+    } else if (state === 'COMPLETED') {
+        audioService.playCompletionSound();
+    }
+  }, [state]);
 
   useInterval(
     () => {
@@ -50,6 +62,17 @@ const BurpeeWorkout: React.FC<BurpeeWorkoutProps> = ({ onComplete }) => {
     setIsRunning(!isRunning);
   };
 
+  const handleStop = () => {
+    setIsRunning(false);
+    // If stopping during a work interval, that rep hasn't been completed.
+    // The number of completed reps is one less than the current rep number.
+    if (state === 'WORK') {
+      setCurrentRep(currentRep > 1 ? currentRep - 1 : 0);
+    }
+    // If stopping during rest, the current rep count is accurate for completed reps.
+    setState('COMPLETED');
+  };
+
   const getTimerProgress = () => {
     if (state === 'NOT_STARTED' || state === 'COMPLETED') return 0;
     const duration = state === 'WORK' ? BURPEE_CONFIG.workDuration : BURPEE_CONFIG.restDuration;
@@ -57,6 +80,19 @@ const BurpeeWorkout: React.FC<BurpeeWorkoutProps> = ({ onComplete }) => {
     return 1 - (timer / duration);
   };
   
+  const getTimerColor = () => {
+    // When paused, the circle should be red.
+    if (!isRunning && (state === 'WORK' || state === 'REST')) {
+      return 'text-red-500';
+    }
+    // During rest, it should be green.
+    if (state === 'REST') {
+      return 'text-green-400';
+    }
+    // Default work color.
+    return 'text-cyan-400';
+  };
+
   return (
     <div className="flex flex-col items-center justify-center text-center space-y-8">
       <h1 className="text-4xl font-bold text-white">Burpee Challenge</h1>
@@ -70,6 +106,7 @@ const BurpeeWorkout: React.FC<BurpeeWorkoutProps> = ({ onComplete }) => {
         progress={getTimerProgress()}
         time={timer}
         label={state === 'WORK' ? 'WORK' : state === 'REST' ? 'REST' : 'READY'}
+        colorClassName={getTimerColor()}
       />
 
       <div className="flex items-center justify-center gap-4 h-12">
@@ -77,16 +114,22 @@ const BurpeeWorkout: React.FC<BurpeeWorkoutProps> = ({ onComplete }) => {
           <Button onClick={startWorkout}>Start Workout</Button>
         )}
         {(state === 'WORK' || state === 'REST') && (
-          <Button onClick={handlePauseToggle} variant="secondary">
-            {isRunning ? 'Pause' : 'Resume'}
-          </Button>
+          <div className="flex items-center justify-center gap-4">
+            <Button onClick={handlePauseToggle} variant={isRunning ? 'warning' : 'secondary'}>
+              {isRunning ? 'Pause' : 'Resume'}
+            </Button>
+            <Button onClick={handleStop} variant="ghost">
+              Stop & Log
+            </Button>
+          </div>
         )}
       </div>
 
       {state === 'COMPLETED' && (
         <div className="flex flex-col items-center space-y-4">
           <p className="text-2xl font-bold text-green-400">Workout Complete!</p>
-          <Button onClick={onComplete}>Mark as Complete & Go Back</Button>
+          {currentRep > 0 && <p className="text-xl text-white">You completed {currentRep} {currentRep === 1 ? 'rep' : 'reps'}.</p>}
+          <Button onClick={() => onComplete(currentRep)}>Mark as Complete & Go Back</Button>
         </div>
       )}
     </div>

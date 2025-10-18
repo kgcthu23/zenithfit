@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HIIT_CIRCUIT, HIIT_ROUNDS } from '../constants';
 import { useInterval } from '../hooks/useInterval';
 import { Button } from './ui/Button';
 import { TimerCircle } from './ui/TimerCircle';
+import * as audioService from '../services/audioService';
 
 interface HiitWorkoutProps {
   onComplete: () => void;
@@ -18,6 +19,25 @@ const HiitWorkout: React.FC<HiitWorkoutProps> = ({ onComplete }) => {
   const [isRunning, setIsRunning] = useState(false);
 
   const currentExercise = HIIT_CIRCUIT[currentExerciseIndex];
+
+  // Audio cue on exercise change
+  useEffect(() => {
+    if (state === 'RUNNING') {
+        const isRest = currentExercise.name.toLowerCase().includes('rest');
+        if (isRest) {
+            audioService.playStartRestSound();
+        } else {
+            audioService.playStartWorkSound();
+        }
+    }
+  }, [currentExerciseIndex, currentRound, state]);
+
+  // Audio cue for completion
+  useEffect(() => {
+      if (state === 'COMPLETED') {
+          audioService.playCompletionSound();
+      }
+  }, [state]);
 
   const advanceToNext = () => {
     const nextExerciseIndex = currentExerciseIndex + 1;
@@ -80,7 +100,22 @@ const HiitWorkout: React.FC<HiitWorkoutProps> = ({ onComplete }) => {
         nextExerciseInfo = HIIT_CIRCUIT[0].name;
     }
   }
+
+  const isRest = currentExercise.name.toLowerCase().includes('rest');
   
+  const getTimerColor = () => {
+    // When paused, the circle should be red.
+    if (!isRunning && state === 'RUNNING') {
+      return 'text-red-500';
+    }
+    // During rest, it should be green.
+    if (isRest) {
+      return 'text-green-400';
+    }
+    // Default work color.
+    return 'text-cyan-400';
+  };
+
   return (
     <div className="flex flex-col items-center justify-center text-center space-y-6">
       <h1 className="text-4xl font-bold text-white">HIIT Circuit</h1>
@@ -96,7 +131,8 @@ const HiitWorkout: React.FC<HiitWorkoutProps> = ({ onComplete }) => {
       <TimerCircle
         progress={getTimerProgress()}
         time={timer}
-        label={currentExercise.name.toLowerCase().includes('rest') ? 'REST' : 'WORK'}
+        label={isRest ? 'REST' : 'WORK'}
+        colorClassName={getTimerColor()}
       />
       
       {isRunning && timer <= 5 && nextExerciseInfo ? (
@@ -111,7 +147,7 @@ const HiitWorkout: React.FC<HiitWorkoutProps> = ({ onComplete }) => {
       )}
       {state === 'RUNNING' && (
         <div className="flex items-center justify-center gap-4">
-            <Button onClick={handlePauseToggle} variant="secondary">
+            <Button onClick={handlePauseToggle} variant={isRunning ? 'warning' : 'secondary'}>
               {isRunning ? 'Pause' : 'Resume'}
             </Button>
             <Button onClick={handleSkip} variant="ghost">

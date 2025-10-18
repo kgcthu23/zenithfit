@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface TimerCircleProps {
@@ -7,9 +6,10 @@ interface TimerCircleProps {
   strokeWidth?: number;
   time: number;
   label: string;
+  colorClassName?: string;
 }
 
-export const TimerCircle: React.FC<TimerCircleProps> = ({ progress, size = 280, strokeWidth = 12, time, label }) => {
+export const TimerCircle: React.FC<TimerCircleProps> = ({ progress, size = 280, strokeWidth = 12, time, label, colorClassName = 'text-cyan-400' }) => {
   const center = size / 2;
   const radius = center - strokeWidth;
   const circumference = 2 * Math.PI * radius;
@@ -33,7 +33,7 @@ export const TimerCircle: React.FC<TimerCircleProps> = ({ progress, size = 280, 
           r={radius}
           stroke="currentColor"
           strokeWidth={strokeWidth}
-          className="text-cyan-400 transition-all duration-300"
+          className={`${colorClassName} transition-all duration-300`}
           fill="transparent"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
