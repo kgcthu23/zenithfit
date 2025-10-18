@@ -1,0 +1,5 @@
+{
+  "name": "Zenith Fit",
+  "description": "A modern fitness web application to track and guide your workouts, featuring burpee and HIIT timers, a structured dumbbell program, and a productivity calendar to visualize your progress.",
+  "requestFramePermissions": []
+}
