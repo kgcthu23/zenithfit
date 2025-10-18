@@ -1,55 +1,48 @@
 import type { WorkoutLogEntry } from '../types';
 
-const STORAGE_KEY = 'zenithFitWorkoutLog';
-const API_LATENCY = 500; // 500ms delay to simulate network
+const WORKOUT_LOG_KEY = 'zenith-fit-workout-log';
 
 /**
- * Fetches the entire workout log from the mock backend (localStorage).
+ * Fetches the workout log from localStorage.
  * @returns A promise that resolves to an array of workout log entries.
  */
-export const getWorkoutLog = (): Promise<WorkoutLogEntry[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      try {
-        const savedData = localStorage.getItem(STORAGE_KEY);
-        const log = savedData ? JSON.parse(savedData) : [];
-        resolve(log);
-      } catch (error) {
-        console.error("Failed to fetch workout log from storage", error);
-        resolve([]); // Resolve with an empty array on error
-      }
-    }, API_LATENCY);
-  });
+export const getWorkoutLog = async (): Promise<WorkoutLogEntry[]> => {
+  try {
+    const logJSON = localStorage.getItem(WORKOUT_LOG_KEY);
+    if (!logJSON) {
+      return [];
+    }
+    const log: WorkoutLogEntry[] = JSON.parse(logJSON);
+    // Ensure data is sorted by date descending, as it's no longer done by a query
+    return log.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  } catch (error) {
+    console.error("Error fetching workout log from localStorage:", error);
+    return []; // Return empty array on error
+  }
 };
 
 /**
- * Adds a new workout log entry to the mock backend (localStorage).
+ * Adds a new workout log entry to localStorage.
  * @param workoutName - The name of the completed workout.
  * @returns A promise that resolves to the newly created workout log entry.
  */
-export const addWorkoutLogEntry = (workoutName: string): Promise<WorkoutLogEntry> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      try {
-        const newEntry: WorkoutLogEntry = {
-          id: `${Date.now()}-${Math.random()}`,
-          name: workoutName,
-          date: new Date().toISOString(),
-        };
-
-        // First, get the current log
-        const savedData = localStorage.getItem(STORAGE_KEY);
-        const currentLog: WorkoutLogEntry[] = savedData ? JSON.parse(savedData) : [];
-        
-        // Add the new entry and save
-        const updatedLog = [newEntry, ...currentLog];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLog));
-        
-        resolve(newEntry);
-      } catch (error) {
-        console.error("Failed to add workout log entry to storage", error);
-        reject(error);
-      }
-    }, API_LATENCY);
-  });
+export const addWorkoutLogEntry = async (workoutName: string): Promise<WorkoutLogEntry> => {
+  try {
+    const currentLog = await getWorkoutLog();
+    const newEntry: WorkoutLogEntry = {
+      id: new Date().getTime().toString(), // Simple unique ID
+      name: workoutName,
+      date: new Date().toISOString(),
+    };
+    
+    // Prepend new entry to maintain descending order before next fetch
+    const updatedLog = [newEntry, ...currentLog];
+    
+    localStorage.setItem(WORKOUT_LOG_KEY, JSON.stringify(updatedLog));
+    
+    return newEntry;
+  } catch (error) {
+    console.error("Error adding workout log entry to localStorage:", error);
+    throw error; // Rethrow to be handled by the caller
+  }
 };

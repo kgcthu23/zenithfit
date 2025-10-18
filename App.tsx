@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+
 import Dashboard from './components/Dashboard';
 import BurpeeWorkout from './components/BurpeeWorkout';
 import HiitWorkout from './components/HiitWorkout';
@@ -11,27 +12,34 @@ import { getWorkoutLog, addWorkoutLogEntry } from './services/api';
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>(Page.Dashboard);
   const [workoutLog, setWorkoutLog] = useState<WorkoutLogEntry[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
 
   useEffect(() => {
+    // Fetch data on initial component mount
     const fetchLog = async () => {
-      setIsLoading(true);
+      setIsLoadingData(true);
       const log = await getWorkoutLog();
       setWorkoutLog(log);
-      setIsLoading(false);
+      setIsLoadingData(false);
     };
 
     fetchLog();
   }, []);
 
+  const refetchLog = async () => {
+    setIsLoadingData(true);
+    const log = await getWorkoutLog();
+    setWorkoutLog(log);
+    setIsLoadingData(false);
+  }
+
   const handleWorkoutComplete = async (workoutName: string) => {
     try {
-      const newEntry = await addWorkoutLogEntry(workoutName);
-      // Optimistically update the UI
-      setWorkoutLog(prevLog => [newEntry, ...prevLog]);
+      await addWorkoutLogEntry(workoutName);
+      // Refetch log after adding a new entry
+      await refetchLog();
     } catch (error) {
       console.error("Failed to save workout.", error);
-      // Optionally show an error message to the user
     }
     setCurrentPage(Page.Dashboard);
   };
@@ -46,7 +54,7 @@ const App: React.FC = () => {
         return <DumbbellWorkouts onComplete={handleWorkoutComplete} />;
       case Page.Dashboard:
       default:
-        return <Dashboard setPage={setCurrentPage} workoutLog={workoutLog} isLoading={isLoading} />;
+        return <Dashboard setPage={setCurrentPage} workoutLog={workoutLog} isLoading={isLoadingData} />;
     }
   };
 
@@ -60,17 +68,19 @@ const App: React.FC = () => {
                 >
                     <span className="text-cyan-400">ZENITH</span>FIT
                 </div>
-                {currentPage !== Page.Dashboard && (
-                    <Button variant="secondary" onClick={() => setCurrentPage(Page.Dashboard)}>
-                        Dashboard
-                    </Button>
-                )}
+                 <div className="flex items-center gap-4">
+                  {currentPage !== Page.Dashboard && (
+                      <Button variant="secondary" onClick={() => setCurrentPage(Page.Dashboard)}>
+                          Dashboard
+                      </Button>
+                  )}
+                </div>
             </header>
             <main>
                 {renderPage()}
             </main>
              <footer className="text-center mt-12 text-slate-500 text-sm">
-                <p>Powered by dedication and code. Stay consistent.</p>
+                <p>Stay consistent. Push your limits.</p>
             </footer>
         </div>
     </div>
