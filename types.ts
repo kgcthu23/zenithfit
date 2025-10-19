@@ -4,6 +4,7 @@ export enum Page {
   Burpees = 'BURPEES',
   HIIT = 'HIIT',
   Dumbbell = 'DUMBBELL',
+  Fullbody = 'FULLBODY',
 }
 
 export interface HiitExercise {
@@ -20,7 +21,9 @@ export interface DumbbellDay {
   day: number;
   title: string;
   focus: string;
+  warmup: string[];
   exercises: DumbbellExercise[];
+  stretch: string[];
 }
 
 export interface WorkoutLogEntry {

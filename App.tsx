@@ -4,6 +4,7 @@ import Dashboard from './components/Dashboard';
 import BurpeeWorkout from './components/BurpeeWorkout';
 import HiitWorkout from './components/HiitWorkout';
 import DumbbellWorkouts from './components/DumbbellWorkouts';
+import FullbodyWorkout from './components/FullbodyWorkout';
 import { Page } from './types';
 import type { WorkoutLogEntry } from './types';
 import { Button } from './components/ui/Button';
@@ -57,6 +58,8 @@ const App: React.FC = () => {
         return <HiitWorkout onComplete={() => handleWorkoutComplete('HIIT Circuit')} />;
       case Page.Dumbbell:
         return <DumbbellWorkouts onComplete={handleWorkoutComplete} />;
+      case Page.Fullbody:
+        return <FullbodyWorkout onComplete={() => handleWorkoutComplete('Fullbody Workout')} />;
       case Page.Dashboard:
       default:
         return <Dashboard setPage={setCurrentPage} workoutLog={workoutLog} isLoading={isLoadingData} />;

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DUMBBELL_WORKOUTS } from '../constants';
 import type { DumbbellDay } from '../types';
@@ -8,19 +9,39 @@ interface DumbbellWorkoutsProps {
   onComplete: (workoutName: string) => void;
 }
 
+const RoutineList: React.FC<{ title: string; items: string[] }> = ({ title, items }) => (
+  <Card className="mb-8">
+    <h3 className="text-xl font-bold text-cyan-400 mb-4">{title}</h3>
+    <ul className="space-y-2 list-disc list-inside text-slate-300">
+      {items.map((item, index) => (
+        <li key={index}>{item}</li>
+      ))}
+    </ul>
+  </Card>
+);
+
 const DumbbellDayView: React.FC<{ day: DumbbellDay; onComplete: () => void }> = ({ day, onComplete }) => {
   return (
-    <div className="w-full max-w-2xl mx-auto">
-       <h2 className="text-3xl font-bold text-white text-center">{day.title}</h2>
-       <p className="text-cyan-400 text-center mb-6">{day.focus}</p>
-       <div className="space-y-4">
-         {day.exercises.map((exercise, index) => (
-           <div key={index} className="bg-slate-800 p-4 rounded-lg flex justify-between items-center">
-             <span className="text-slate-200">{exercise.name}</span>
-             <span className="text-slate-400 font-mono text-sm">{exercise.sets}</span>
-           </div>
-         ))}
-       </div>
+    <div className="w-full max-w-3xl mx-auto animate-fade-in">
+       <h2 className="text-4xl font-bold text-white text-center">{day.title}</h2>
+       <p className="text-cyan-400 text-center mb-8 text-lg">{day.focus}</p>
+
+       <RoutineList title="Warm-up" items={day.warmup} />
+      
+       <Card className="mb-8">
+        <h3 className="text-xl font-bold text-cyan-400 mb-4">Main Workout</h3>
+        <ul className="space-y-4">
+          {day.exercises.map((exercise, index) => (
+            <li key={index} className="bg-slate-900/50 p-4 rounded-lg flex flex-col sm:flex-row justify-between sm:items-center gap-2 border border-slate-700">
+              <p className="text-lg font-semibold text-slate-200">{exercise.name}</p>
+              <p className="text-slate-400 font-mono text-sm sm:text-base">{exercise.sets}</p>
+            </li>
+          ))}
+        </ul>
+      </Card>
+
+      <RoutineList title="Cool-down & Stretch" items={day.stretch} />
+
        <div className="text-center mt-8">
         <Button onClick={onComplete}>Mark as Complete & Go Back</Button>
        </div>
