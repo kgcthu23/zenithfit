@@ -11,11 +11,18 @@ interface BurpeeWorkoutProps {
 
 type WorkoutState = 'NOT_STARTED' | 'WORK' | 'REST' | 'COMPLETED';
 
+const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+};
+
 const BurpeeWorkout: React.FC<BurpeeWorkoutProps> = ({ onComplete }) => {
   const [state, setState] = useState<WorkoutState>('NOT_STARTED');
   const [currentRep, setCurrentRep] = useState(1);
   const [timer, setTimer] = useState(BURPEE_CONFIG.workDuration);
   const [isRunning, setIsRunning] = useState(false);
+  const [totalTime, setTotalTime] = useState(0);
 
   // Audio cues on state change
   useEffect(() => {
@@ -51,11 +58,19 @@ const BurpeeWorkout: React.FC<BurpeeWorkoutProps> = ({ onComplete }) => {
     isRunning ? 1000 : null
   );
 
+  useInterval(
+    () => {
+      setTotalTime(t => t + 1);
+    },
+    isRunning ? 1000 : null,
+  );
+
   const startWorkout = () => {
     setState('WORK');
     setCurrentRep(1);
     setTimer(BURPEE_CONFIG.workDuration);
     setIsRunning(true);
+    setTotalTime(0);
   };
 
   const handlePauseToggle = () => {
@@ -98,9 +113,17 @@ const BurpeeWorkout: React.FC<BurpeeWorkoutProps> = ({ onComplete }) => {
       <h1 className="text-4xl font-bold text-white">Burpee Challenge</h1>
       <p className="text-slate-400">{BURPEE_CONFIG.reps} Reps / {BURPEE_CONFIG.workDuration}s On / {BURPEE_CONFIG.restDuration}s Off</p>
       
-      {state !== 'NOT_STARTED' && state !== 'COMPLETED' && (
-        <p className="text-2xl text-white">Rep: <span className="font-bold text-cyan-400">{currentRep}</span> / {BURPEE_CONFIG.reps}</p>
-      )}
+      <div className="h-16 flex flex-col justify-center"> {/* Placeholder to prevent layout shift */}
+        {state !== 'NOT_STARTED' && state !== 'COMPLETED' && (
+          <div className="text-center animate-fade-in">
+            <p className="text-2xl text-white">Rep: <span className="font-bold text-cyan-400">{currentRep}</span> / {BURPEE_CONFIG.reps}</p>
+            <p className="text-lg text-slate-300 mt-1">
+                Total Time: <span className="font-mono font-bold text-slate-100 tracking-wider">{formatTime(totalTime)}</span>
+            </p>
+          </div>
+        )}
+      </div>
+
 
       <TimerCircle
         progress={getTimerProgress()}
@@ -128,7 +151,7 @@ const BurpeeWorkout: React.FC<BurpeeWorkoutProps> = ({ onComplete }) => {
       {state === 'COMPLETED' && (
         <div className="flex flex-col items-center space-y-4">
           <p className="text-2xl font-bold text-green-400">Workout Complete!</p>
-          {currentRep > 0 && <p className="text-xl text-white">You completed {currentRep} {currentRep === 1 ? 'rep' : 'reps'}.</p>}
+          {currentRep > 0 && <p className="text-xl text-white">You completed {currentRep} {currentRep === 1 ? 'rep' : 'reps'} in {formatTime(totalTime)}.</p>}
           <Button onClick={() => onComplete(currentRep)}>Mark as Complete & Go Back</Button>
         </div>
       )}

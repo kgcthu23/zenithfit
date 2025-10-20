@@ -2,28 +2,28 @@
 export enum Page {
   Dashboard = 'DASHBOARD',
   Burpees = 'BURPEES',
-  HIIT = 'HIIT',
-  Dumbbell = 'DUMBBELL',
-  Fullbody = 'FULLBODY',
+  WorkoutProgram = 'WORKOUT_PROGRAM',
 }
 
-export interface HiitExercise {
+export interface Exercise {
   name: string;
-  duration: number;
+  weight?: number;
+  reps?: string;
+  unit?: 'lbs' | 'sec';
 }
 
-export interface DumbbellExercise {
-  name: string;
-  sets: string;
+export interface WorkoutGroup {
+  title: string;
+  sets?: number;
+  exercises: Exercise[];
 }
 
-export interface DumbbellDay {
+export interface WorkoutDay {
   day: number;
   title: string;
-  focus: string;
-  warmup: string[];
-  exercises: DumbbellExercise[];
-  stretch: string[];
+  description?: string;
+  youtubeUrl?: string;
+  groups?: WorkoutGroup[];
 }
 
 export interface WorkoutLogEntry {
