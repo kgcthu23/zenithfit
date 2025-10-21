@@ -4,6 +4,7 @@ import { useInterval } from '../hooks/useInterval';
 import { Button } from './ui/Button';
 import { TimerCircle } from './ui/TimerCircle';
 import * as audioService from '../services/audioService';
+import * as hapticService from '../services/hapticService';
 
 interface BurpeeWorkoutProps {
   onComplete: (reps: number) => void;
@@ -24,13 +25,15 @@ const BurpeeWorkout: React.FC<BurpeeWorkoutProps> = ({ onComplete }) => {
   const [isRunning, setIsRunning] = useState(false);
   const [totalTime, setTotalTime] = useState(0);
 
-  // Audio cues on state change
+  // Audio and haptic cues on state change
   useEffect(() => {
     if (state === 'WORK') {
         audioService.playStartWorkSound();
     } else if (state === 'REST') {
+        hapticService.triggerAction(); // Vibrate on completing a rep
         audioService.playStartRestSound();
     } else if (state === 'COMPLETED') {
+        hapticService.triggerCompletion();
         audioService.playCompletionSound();
     }
   }, [state]);
@@ -66,6 +69,7 @@ const BurpeeWorkout: React.FC<BurpeeWorkoutProps> = ({ onComplete }) => {
   );
 
   const startWorkout = () => {
+    hapticService.triggerStart();
     setState('WORK');
     setCurrentRep(1);
     setTimer(BURPEE_CONFIG.workDuration);
@@ -74,6 +78,7 @@ const BurpeeWorkout: React.FC<BurpeeWorkoutProps> = ({ onComplete }) => {
   };
 
   const handlePauseToggle = () => {
+    hapticService.triggerPause();
     setIsRunning(!isRunning);
   };
 

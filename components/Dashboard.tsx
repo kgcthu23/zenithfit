@@ -18,10 +18,9 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, workoutLog, isLoading })
   const calendarData = useMemo((): CompletedWorkout[] => {
     if (!workoutLog) return [];
     
-    // FIX: The generic type argument on `reduce` was causing a compiler error.
-    // By typing the initial value (`{}`), we ensure `countsByDate` is correctly typed as Record<string, number>,
-    // which resolves the downstream type error for `count`.
-    const countsByDate = workoutLog.reduce((acc, entry) => {
+    // FIX: Explicitly typing the accumulator `acc` ensures that TypeScript correctly infers
+    // the return type of `reduce`, which resolves the downstream type error for `count`.
+    const countsByDate = workoutLog.reduce((acc: Record<string, number>, entry) => {
       const date = entry.date.split('T')[0]; // Format to YYYY-MM-DD
       acc[date] = (acc[date] || 0) + 1;
       return acc;

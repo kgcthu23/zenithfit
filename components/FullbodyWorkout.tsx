@@ -4,6 +4,7 @@ import { useInterval } from '../hooks/useInterval';
 import { Button } from './ui/Button';
 import { TimerCircle } from './ui/TimerCircle';
 import * as audioService from '../services/audioService';
+import * as hapticService from '../services/hapticService';
 
 interface FullbodyWorkoutProps {
   onComplete: () => void;
@@ -32,9 +33,10 @@ const FullbodyWorkout: React.FC<FullbodyWorkoutProps> = ({ onComplete }) => {
     }
   }, [currentExerciseIndex, currentRound, state]);
 
-  // Audio cue for completion
+  // Audio and haptic cue for completion
   useEffect(() => {
       if (state === 'COMPLETED') {
+          hapticService.triggerCompletion();
           audioService.playCompletionSound();
       }
   }, [state]);
@@ -61,6 +63,7 @@ const FullbodyWorkout: React.FC<FullbodyWorkoutProps> = ({ onComplete }) => {
       if (timer > 0) {
         setTimer(timer - 1);
       } else {
+        hapticService.triggerAction(); // Vibrate on exercise completion
         advanceToNext();
       }
     },
@@ -68,6 +71,7 @@ const FullbodyWorkout: React.FC<FullbodyWorkoutProps> = ({ onComplete }) => {
   );
 
   const startWorkout = () => {
+    hapticService.triggerStart();
     setState('RUNNING');
     setCurrentRound(1);
     setCurrentExerciseIndex(0);
@@ -76,6 +80,7 @@ const FullbodyWorkout: React.FC<FullbodyWorkoutProps> = ({ onComplete }) => {
   };
 
   const handlePauseToggle = () => {
+    hapticService.triggerPause();
     setIsRunning(!isRunning);
   };
 
