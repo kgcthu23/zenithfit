@@ -3,6 +3,7 @@ export enum Page {
   Dashboard = 'DASHBOARD',
   Burpees = 'BURPEES',
   WorkoutProgram = 'WORKOUT_PROGRAM',
+  Hiit = 'HIIT',
 }
 
 export interface Exercise {
@@ -30,6 +31,7 @@ export interface WorkoutLogEntry {
   id: string;
   name: string;
   date: string; // ISO String
+  workoutDetails?: Omit<WorkoutDay, 'day' | 'youtubeUrl'>;
 }
 
 // FIX: Add CompletedWorkout interface to resolve import errors.

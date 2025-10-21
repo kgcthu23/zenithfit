@@ -1,4 +1,4 @@
-import type { WorkoutLogEntry } from '../types';
+import type { WorkoutLogEntry, WorkoutDay } from '../types';
 
 const WORKOUT_LOG_KEY = 'zenith-fit-workout-log';
 
@@ -24,15 +24,20 @@ export const getWorkoutLog = async (): Promise<WorkoutLogEntry[]> => {
 /**
  * Adds a new workout log entry to localStorage.
  * @param workoutName - The name of the completed workout.
+ * @param workoutDetails - Optional detailed breakdown of the workout.
  * @returns A promise that resolves to the newly created workout log entry.
  */
-export const addWorkoutLogEntry = async (workoutName: string): Promise<WorkoutLogEntry> => {
+export const addWorkoutLogEntry = async (
+  workoutName: string,
+  workoutDetails?: Omit<WorkoutDay, 'day' | 'youtubeUrl'>
+): Promise<WorkoutLogEntry> => {
   try {
     const currentLog = await getWorkoutLog();
     const newEntry: WorkoutLogEntry = {
       id: new Date().getTime().toString(), // Simple unique ID
       name: workoutName,
       date: new Date().toISOString(),
+      workoutDetails: workoutDetails,
     };
     
     // Prepend new entry to maintain descending order before next fetch

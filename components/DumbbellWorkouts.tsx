@@ -134,7 +134,7 @@ const DayView: React.FC<{
 };
 
 const WorkoutProgram: React.FC<{
-  onComplete: (workoutName: string) => void;
+  onComplete: (workout: WorkoutDay) => void;
 }> = ({ onComplete }) => {
   const [program, setProgram] = useState<WorkoutDay[]>(() => {
     try {
@@ -179,7 +179,7 @@ const WorkoutProgram: React.FC<{
           day={currentDayData}
           onUpdate={handleDayUpdate}
           onComplete={() => {
-            onComplete(`Workout: ${selectedDay.title}`);
+            onComplete(currentDayData);
             setSelectedDay(null);
           }}
         />

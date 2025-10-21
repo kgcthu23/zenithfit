@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 
 import Dashboard from './components/Dashboard';
 import BurpeeWorkout from './components/BurpeeWorkout';
+import HiitWorkout from './components/HiitWorkout';
 import WorkoutProgram from './components/DumbbellWorkouts';
 import { Page } from './types';
-import type { WorkoutLogEntry } from './types';
+import type { WorkoutLogEntry, WorkoutDay } from './types';
 import { Button } from './components/ui/Button';
 import { getWorkoutLog, addWorkoutLogEntry } from './services/api';
 
@@ -32,15 +33,23 @@ const App: React.FC = () => {
     setIsLoadingData(false);
   }
 
-  const handleWorkoutComplete = async (workoutName: string, reps?: number) => {
-    let logName = workoutName;
-    if (reps !== undefined && reps > 0) {
-      logName = `${workoutName} (${reps} ${reps === 1 ? 'rep' : 'reps'})`;
+  const handleWorkoutComplete = async (workout: string | WorkoutDay, reps?: number) => {
+    let logName: string;
+    let details: Omit<WorkoutDay, 'day' | 'youtubeUrl'> | undefined = undefined;
+
+    if (typeof workout === 'string') {
+        logName = workout;
+        if (reps !== undefined && reps > 0) {
+            logName = `${workout} (${reps} ${reps === 1 ? 'rep' : 'reps'})`;
+        }
+    } else {
+        logName = workout.title;
+        const { day, youtubeUrl, ...rest } = workout;
+        details = rest;
     }
 
     try {
-      await addWorkoutLogEntry(logName);
-      // Refetch log after adding a new entry
+      await addWorkoutLogEntry(logName, details);
       await refetchLog();
     } catch (error) {
       console.error("Failed to save workout.", error);
@@ -52,8 +61,10 @@ const App: React.FC = () => {
     switch(currentPage) {
       case Page.Burpees:
         return <BurpeeWorkout onComplete={(reps) => handleWorkoutComplete('Burpee Challenge', reps)} />;
+      case Page.Hiit:
+        return <HiitWorkout onComplete={() => handleWorkoutComplete('HIIT Circuit')} />;
       case Page.WorkoutProgram:
-        return <WorkoutProgram onComplete={handleWorkoutComplete} />;
+        return <WorkoutProgram onComplete={(workout) => handleWorkoutComplete(workout)} />;
       case Page.Dashboard:
       default:
         return <Dashboard setPage={setCurrentPage} workoutLog={workoutLog} isLoading={isLoadingData} />;
