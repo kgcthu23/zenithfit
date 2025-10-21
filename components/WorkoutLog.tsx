@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import type { WorkoutLogEntry } from '../types';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
@@ -15,17 +16,59 @@ const formatDate = (isoString: string) => {
   });
 };
 
+const isDateToday = (isoString: string) => {
+    const today = new Date();
+    const entryDate = new Date(isoString);
+    return today.getFullYear() === entryDate.getFullYear() &&
+           today.getMonth() === entryDate.getMonth() &&
+           today.getDate() === entryDate.getDate();
+};
+
 export const WorkoutLog: React.FC<WorkoutLogProps> = ({ log, isLoading }) => {
+  const [filter, setFilter] = useState<'today' | 'all'>('today');
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const filteredLog = useMemo(() => {
+    if (filter === 'today') {
+      return log.filter(entry => isDateToday(entry.date));
+    }
+    return log;
+  }, [log, filter]);
+
   const displayLimit = 5;
-  const canExpand = log.length > displayLimit;
-  const displayedLog = canExpand && !isExpanded ? log.slice(0, displayLimit) : log;
+  const canExpand = filter === 'all' && filteredLog.length > displayLimit;
+  const displayedLog = canExpand && !isExpanded ? filteredLog.slice(0, displayLimit) : log;
+
+  const getEmptyMessage = () => {
+    if (filter === 'today') {
+        return "No workouts logged today. Let's get moving!";
+    }
+    return "No workouts logged yet. Time to get started!";
+  }
+
 
   return (
     <Card>
-      <h3 className="text-lg font-semibold text-white mb-4">Workout Log</h3>
-      <div className={`space-y-3 overflow-y-auto pr-2 transition-all duration-300 ${isExpanded ? 'max-h-[32rem]' : 'max-h-96'}`}>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold text-white">Workout Log</h3>
+        <div className="flex items-center gap-2">
+            <Button 
+                variant={filter === 'today' ? 'secondary' : 'ghost'} 
+                onClick={() => setFilter('today')}
+                className="px-3 py-1 text-sm"
+            >
+                Today
+            </Button>
+            <Button 
+                variant={filter === 'all' ? 'secondary' : 'ghost'} 
+                onClick={() => setFilter('all')}
+                className="px-3 py-1 text-sm"
+            >
+                All History
+            </Button>
+        </div>
+      </div>
+      <div className={`space-y-3 overflow-y-auto pr-2 transition-all duration-300 ${isExpanded && filter === 'all' ? 'max-h-[32rem]' : 'max-h-96'}`}>
         {isLoading ? (
           <p className="text-slate-400 text-center py-4">Loading log...</p>
         ) : displayedLog.length > 0 ? (
@@ -36,13 +79,13 @@ export const WorkoutLog: React.FC<WorkoutLogProps> = ({ log, isLoading }) => {
             </div>
           ))
         ) : (
-          <p className="text-slate-400 text-center py-4">No workouts logged yet. Time to get started!</p>
+          <p className="text-slate-400 text-center py-4">{getEmptyMessage()}</p>
         )}
       </div>
        {canExpand && (
         <div className="mt-4 text-center">
           <Button variant="ghost" onClick={() => setIsExpanded(!isExpanded)}>
-            {isExpanded ? 'Show Less' : `View All History (${log.length})`}
+            {isExpanded ? 'Show Less' : `View All (${filteredLog.length})`}
           </Button>
         </div>
       )}

@@ -32,8 +32,8 @@ export interface WorkoutLogEntry {
   date: string; // ISO String
 }
 
-// FIX: Export the CompletedWorkout type to resolve the import error in WorkoutCalendar.tsx.
+// FIX: Add CompletedWorkout interface to resolve import errors.
 export interface CompletedWorkout {
-  date: string; // YYYY-MM-DD
+  date: string; // Format: YYYY-MM-DD
   count: number;
 }
